@@ -422,6 +422,7 @@ class rt_deep:
             input = input.to(self.device)
             lable = lable.to(self.device)
 
+<<<<<<< Updated upstream
             logit = self.model(input, **kwargs)
             lable = lable.to(torch.int)
             lable = lable.detach().to('cpu')
@@ -439,6 +440,25 @@ class rt_deep:
         lable_all = lable_all.astype(np.int)
         acc_value = acc_value.numpy()
         return confmat_data,acc_value,lable_all,predict_proba
+=======
+			logit = self.model(input, **kwargs)
+			lable = lable.to(torch.int)
+			lable = lable.detach().to('cpu')
+			logit = logit.detach().to('cpu')
+			Evaluation(logit, lable)
+			confmat_data.append(Confmat(torch.argmax(logit, dim=1), torch.argmax(lable, dim=1)).numpy())
+			pbar.update(1)
+			pbar.set_postfix({'Val acc:': str(Evaluation.compute().numpy()),})
+			lable_all.extend(list(lable.numpy()))
+			predict_proba.extend(list(logit.numpy()))
+		acc_value = Evaluation.compute()
+		confmat_data = list(np.sum(np.array(confmat_data), axis=0))
+		lable_all = np.array(lable_all)
+		predict_proba = np.array(predict_proba)
+		lable_all = lable_all.astype(int)
+		acc_value = acc_value.numpy()
+		return confmat_data,acc_value,lable_all,predict_proba
+>>>>>>> Stashed changes
 
 
     def draw_ROC(self, lable_all, predict_proba,save_path, **kwargs):
