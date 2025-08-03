@@ -52,9 +52,13 @@ def main():
     csv_save_path = os.path.join(experiment_save_path, 'acc.csv')
 
     deepmodel = getattr(import_module('read_deep.model.'+opt.model_name),'model')
-    torch.cuda.set_device(opt.device)
+    if opt.device.startswith("cuda") and torch.cuda.is_available():
+		device = torch.device(opt.device)
+		torch.cuda.set_device(device)
+	else:
+		device = torch.device("cpu")
     model = deepmodel(**model_args)
-    nanopore_gpu = rt_deep(model, opt.signal_length,opt.device)
+    nanopore_gpu = rt_deep(model, opt.signal_length,device)
     nanopore_gpu.load_the_model_weights(opt.model_path)
     print("load weight complete")
     nanopore_gpu.load_data(data_path=opt.data_path,
