@@ -436,7 +436,7 @@ class rt_deep:
 		confmat_data = list(np.sum(np.array(confmat_data), axis=0))
 		lable_all = np.array(lable_all)
 		predict_proba = np.array(predict_proba)
-		lable_all = lable_all.astype(np.int)
+		lable_all = lable_all.astype(int)
 		acc_value = acc_value.numpy()
 		return confmat_data,acc_value,lable_all,predict_proba
 
@@ -476,4 +476,3 @@ class rt_deep:
 
 	def data_imformation(self):
 		self.train_dataset.data_status()
-
