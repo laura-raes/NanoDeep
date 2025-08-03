@@ -16,7 +16,7 @@ def main():
     parser.add_argument('-label_path', required=True, type=str, help='The label used to train model')
     parser.add_argument('-save_path', required=True, type=str, help='The dir used to save train result')
     parser.add_argument("-model_path",required=True,type=str,help='The model which used to test')
-    parser.add_argument('-model_name', default='Nanodeep', help='The model to be used')
+    parser.add_argument('-model_name', default='NanoDeep', help='The model to be used')
     parser.add_argument('-batch_size',default=50,type=int,help='The amount of data used to train the model once')
     parser.add_argument('-device', default='cuda:0', help='The device use to train model')
     parser.add_argument('-model_config', default=None, help='Model hyperparameter settings')
