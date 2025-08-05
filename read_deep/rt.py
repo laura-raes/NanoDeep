@@ -132,6 +132,11 @@ class loaddata_from_memory(dataset.Dataset):
 				signal = reader.get_read(id).get_raw_data()
 				signal = signal_preprocess(signal)
 				if len(signal) > self.input_length:
+					
+					# Print warning if read will not be processed correctly
+					if len(signal) < self.input_length + 1000:
+						print(f"Warning: {id} shorter than expected for slicing")
+					
 					signal = signal[1000:self.input_length + 1000]
 				signal = np.pad(signal, ((0, self.input_length - len(signal))), 'constant', constant_values=0)
 				signal = signal[np.newaxis,]
@@ -140,6 +145,7 @@ class loaddata_from_memory(dataset.Dataset):
 				self.reader_raw_data[id] = signal
 
 			pbar.update()
+		self.reads_ids = [id for id in self.reads_ids if id in self.reader_raw_data]
 	def __getitem__(self, index):
 		id = self.reads_ids[index]
 		label = np.zeros(len(self.lable_name))
