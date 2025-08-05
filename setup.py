@@ -45,6 +45,7 @@ setup(
           'console_scripts': [
             'nanodeep_adaptivesample = nanodeep.nanodeep_adaptivesample:main',
             'nanodeep_testmodel = nanodeep.nanodeep_testmodel:main',
+            'nanodeep_testmodel_nostats = nanodeep.nanodeep_testmodel_nostats:main',
             'nanodeep_trainmodel = nanodeep.nanodeep_trainmodel:main',
             'draw_fast5_id = tool.draw_fast5_id:main'
           ]

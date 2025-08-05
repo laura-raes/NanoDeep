@@ -1,0 +1,63 @@
+import csv
+import os
+import argparse
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import torch
+from read_deep.rt_nostats import rt_deep
+from importlib import import_module
+import yaml
+
+
+#%%
+def main():
+	parser = argparse.ArgumentParser(description="you should add those parameter")
+	parser.add_argument('-data_path', required=True, type=str, help='The data used to train model')
+	parser.add_argument('-save_path', required=True, type=str, help='The dir used to save train result')
+	parser.add_argument("-model_path",required=True,type=str,help='The model which used to test')
+	parser.add_argument('-model_name', default='NanoDeep', help='The model to be used')
+	parser.add_argument('-batch_size',default=50,type=int,help='The amount of data used to train the model once')
+	parser.add_argument('-device', default='cuda:0', help='The device use to train model')
+	parser.add_argument('-model_config', default=None, help='Model hyperparameter settings')
+	parser.add_argument('-signal_length', default=5000, type=int,
+						help='How long signals are used for classification, note that the first 1500 signals are removed')
+	parser.add_argument('--load_to_mem', default=False, action='store_true',
+						help='All train data will be load to memory,it will be faster')
+	opt = parser.parse_args()
+
+	print('-model_name:', opt.model_name)
+	print('-model_path:', opt.model_path)
+	print('-data_path:', opt.data_path)
+	print('-save_path:', opt.save_path)
+	print('-batch_size:', opt.batch_size)
+	print('-device:', opt.device)
+	print('-model_config:', opt.model_config)
+	print('-signal_length:', opt.signal_length)
+	print('-load_data_to_mem:', opt.load_to_mem)
+
+	if opt.model_config == None:
+		model_args = getattr(import_module('read_deep.model_config.defaultconfig'), opt.model_name)
+	else:
+		ymlfile = open(opt.model_config,'r',encoding='utf-8')
+		model_args = yaml.load(ymlfile, Loader=yaml.SafeLoader)
+
+	deepmodel = getattr(import_module('read_deep.model.'+opt.model_name),'model')
+	if opt.device.startswith("cuda") and torch.cuda.is_available():
+		device = torch.device(opt.device)
+		torch.cuda.set_device(device)
+	else:
+		device = torch.device("cpu")
+	model = deepmodel(**model_args)
+	nanopore_gpu = rt_deep(model, opt.signal_length,device)
+	nanopore_gpu.load_the_model_weights(opt.model_path)
+	print("load weight complete")
+	nanopore_gpu.load_data(data_path=opt.data_path,
+						   dataset='test',
+						   load_to_mem=opt.load_to_mem)
+	nanopore_gpu.test_model(batch_size = opt.batch_size)
+
+if __name__ == '__main__':
+	main()
+
+
+
