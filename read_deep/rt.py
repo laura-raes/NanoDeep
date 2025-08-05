@@ -424,11 +424,19 @@ class rt_deep:
 		pbar = tqdm(total=self.test_dataloader.__len__())
 		predict_proba = []
 		lable_all = []
+		output_rows = []
 		for input, lable in self.test_dataloader:
 			input = input.to(self.device)
 			lable = lable.to(self.device)
 
 			logit = self.model(input, **kwargs)
+			
+			# Store predictions per read
+			batch_indices = self.test_dataloader.dataset.reads_ids[pbar.n * batch_size : pbar.n * batch_size + len(input)]
+			predicted_classes = torch.argmax(logit, dim=1).cpu().numpy()
+			for rid, pred in zip(batch_indices, predicted_classes):
+				output_rows.append([rid, pred])
+				
 			lable = lable.to(torch.int)
 			lable = lable.detach().to('cpu')
 			logit = logit.detach().to('cpu')
@@ -438,6 +446,13 @@ class rt_deep:
 			pbar.set_postfix({'Val acc:': str(Evaluation.compute().numpy()),})
 			lable_all.extend(list(lable.numpy()))
 			predict_proba.extend(list(logit.numpy()))
+			
+		# Write predictions per read to csv
+		with open('predictions_per_read.csv', 'w', newline='') as f:
+			writer = csv.writer(f)
+			writer.writerow(['read_id', 'predicted_class'])
+			writer.writerows(output_rows)
+        
 		acc_value = Evaluation.compute()
 		confmat_data = list(np.sum(np.array(confmat_data), axis=0))
 		lable_all = np.array(lable_all)
