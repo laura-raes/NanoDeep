@@ -211,7 +211,7 @@ class rt_deep:
 				self.test_dataloader = dataloader.DataLoader(
 					dataset=self.test_dataset,
 					batch_size=1,
-					shuffle=True
+					shuffle=False
 				)
 
 	def test_model(self,batch_size=50, **kwargs):
@@ -220,7 +220,7 @@ class rt_deep:
 		self.test_dataloader = dataloader.DataLoader(
 			dataset=self.test_dataset,
 			batch_size=batch_size,
-			shuffle=True
+			shuffle=False
 		)
 		self.model.eval()
 		pbar = tqdm(total=self.test_dataloader.__len__())
@@ -232,7 +232,9 @@ class rt_deep:
 			logit = self.model(input, **kwargs)
 			
 			# Store predictions per read
-			batch_indices = self.test_dataloader.dataset.reads_ids[pbar.n * batch_size : pbar.n * batch_size + len(input)]
+			start_idx = len(output_rows)
+			end_idx = start_idx + len(input)
+			batch_indices = self.test_dataset.reads_ids[start_idx:end_idx]
 			predicted_classes = torch.argmax(logit, dim=1).cpu().numpy()
 			for rid, pred in zip(batch_indices, predicted_classes):
 				output_rows.append([rid, pred])
