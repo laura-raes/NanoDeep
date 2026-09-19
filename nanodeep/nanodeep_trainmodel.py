@@ -195,6 +195,11 @@ def main():
 
 
     deepmodel = getattr(import_module('read_deep.model.'+opt.model_name),'model')
+    if opt.device.startswith("cuda") and torch.cuda.is_available():
+        device = torch.device(opt.device)
+        torch.cuda.set_device(device)
+    else:
+        device = torch.device("cpu")
     if not os.path.exists(opt.save_path):
         os.makedirs(opt.save_path)
 
@@ -207,7 +212,6 @@ def main():
         label_path = k_fold_lable(label_path, opt.kfold, lable_save_path,assign_testdata=assign_testdata)
         for i in range(opt.kfold):
             print('this ', i, 'fold for ', opt.model_name)
-            torch.cuda.set_device(opt.device)
 
             experiment_save_path = os.path.join(opt.save_path, str(i))
             if not os.path.exists(experiment_save_path):
@@ -217,7 +221,7 @@ def main():
 
 
             model = deepmodel(**model_args)
-            nanopore_gpu = rt_deep(model, opt.signal_length,opt.device)
+            nanopore_gpu = rt_deep(model, opt.signal_length,device)
 
             nanopore_gpu.load_data(data_path=opt.data_path,
                                    label_path=label_path['train'][i],
@@ -252,7 +256,6 @@ def main():
     else:
         label_path = make_lable(opt.label_path,lable_save_path)
 
-        torch.cuda.set_device(opt.device)
         experiment_save_path = os.path.join(opt.save_path)
         if not os.path.exists(experiment_save_path):
             os.makedirs(experiment_save_path)
@@ -260,7 +263,7 @@ def main():
         csv_save_path = os.path.join(experiment_save_path, 'acc.csv')
 
         model = deepmodel(**model_args)
-        nanopore_gpu = rt_deep(model, opt.signal_length,opt.device)
+        nanopore_gpu = rt_deep(model, opt.signal_length,device)
 
         print('loading train data')
         nanopore_gpu.load_data(data_path=opt.data_path,
